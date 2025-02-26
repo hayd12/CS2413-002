@@ -1,0 +1,44 @@
+#include <stdlib.h>
+
+struct ListNode {
+    int val;
+    struct ListNode* next;
+};
+
+struct ListNode* removeElements(struct ListNode* head, int val) {
+    // Handle empty list case
+    if (head == NULL) {
+        return NULL;
+    }
+
+    // Handle cases where the head nodes need to be removed
+    while (head != NULL && head->val == val) {
+        struct ListNode* temp = head;
+        head = head->next;
+        free(temp);  // Free the memory of removed node
+    }
+
+    // If after removing head nodes, the list becomes empty
+    if (head == NULL) {
+        return NULL;
+    }
+
+    // Remove nodes with matching values from the rest of the list
+    struct ListNode* current = head;
+    while (current->next != NULL) {
+        if (current->next->val == val) {
+            // Save the node to be deleted
+            struct ListNode* temp = current->next;
+            // Update the next pointer to skip the node with matching value
+            current->next = current->next->next;
+            // Free the memory of the removed node
+            free(temp);
+        }
+        else {
+            // Move to the next node only if no deletion happened
+            current = current->next;
+        }
+    }
+
+    return head;
+}
