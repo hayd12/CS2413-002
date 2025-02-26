@@ -1,0 +1,118 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct ListNode {
+    int val;
+    struct ListNode* next;
+};
+
+
+// Iterative approach to reverse a linked list
+struct ListNode* reverseList(struct ListNode* head) {
+    struct ListNode* prev = NULL;
+    struct ListNode* current = head;
+    struct ListNode* next = NULL;
+
+    while (current != NULL) {
+        // Save the next node
+        next = current->next;
+
+        // Reverse the link
+        current->next = prev;
+
+        // Move pointers one position ahead
+        prev = current;
+        current = next;
+    }
+
+    // prev is the new head
+    return prev;
+}
+
+// Helper function to create a new node
+struct ListNode* createNode(int value) {
+    struct ListNode* newNode = (struct ListNode*)malloc(sizeof(struct ListNode));
+    if (newNode == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+    newNode->val = value;
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Helper function to build a linked list from an array
+struct ListNode* buildList(int arr[], int size) {
+    if (size == 0) return NULL;
+
+    struct ListNode* head = createNode(arr[0]);
+    struct ListNode* current = head;
+
+    for (int i = 1; i < size; i++) {
+        current->next = createNode(arr[i]);
+        current = current->next;
+    }
+
+    return head;
+}
+
+// Helper function to print a linked list
+void printList(struct ListNode* head) {
+    printf("[");
+    while (head != NULL) {
+        printf("%d", head->val);
+        if (head->next != NULL) {
+            printf(",");
+        }
+        head = head->next;
+    }
+    printf("]\n");
+}
+
+// Free the memory allocated for the linked list
+void freeList(struct ListNode* head) {
+    struct ListNode* temp;
+    while (head != NULL) {
+        temp = head;
+        head = head->next;
+        free(temp);
+    }
+}
+
+// Main function to test the implementation
+int main() {
+    // Example 1
+    int arr1[] = { 1, 2, 3, 4, 5 };
+    struct ListNode* list1 = buildList(arr1, 5);
+    printf("Example 1:\n");
+    printf("Input: ");
+    printList(list1);
+    list1 = reverseList(list1);
+    printf("Output: ");
+    printList(list1);
+    freeList(list1);
+
+    // Example 2
+    int arr2[] = { 1, 2 };
+    struct ListNode* list2 = buildList(arr2, 2);
+    printf("\nExample 2:\n");
+    printf("Input: ");
+    printList(list2);
+    list2 = reverseList(list2);
+    printf("Output: ");
+    printList(list2);
+    freeList(list2);
+
+    // Example 3
+    int arr3[] = { 1 };
+    struct ListNode* list3 = buildList(arr3, 1);
+    printf("\nExample 3:\n");
+    printf("Input: ");
+    printList(list3);
+    list3 = reverseList(list3);
+    printf("Output: ");
+    printList(list3);
+    freeList(list3);
+
+    return 0;
+}
