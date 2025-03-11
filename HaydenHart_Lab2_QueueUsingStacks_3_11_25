@@ -1,0 +1,125 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+// Define a stack structure
+typedef struct {
+    int* data;
+    int top;
+    int capacity;
+} Stack;
+
+// Initialize a stack
+Stack* createStack(int capacity) {
+    Stack* stack = (Stack*)malloc(sizeof(Stack));
+    stack->capacity = capacity;
+    stack->top = -1;
+    stack->data = (int*)malloc(stack->capacity * sizeof(int));
+    return stack;
+}
+
+// Check if stack is empty
+bool stackEmpty(Stack* stack) {
+    return stack->top == -1;
+}
+
+// Push onto stack
+void stackPush(Stack* stack, int x) {
+    if (stack->top == stack->capacity - 1) {
+        // Double capacity if needed
+        stack->capacity *= 2;
+        stack->data = (int*)realloc(stack->data, stack->capacity * sizeof(int));
+    }
+    stack->data[++(stack->top)] = x;
+}
+
+// Pop from stack
+int stackPop(Stack* stack) {
+    if (stackEmpty(stack)) {
+        printf("Error: Stack underflow\n");
+        return -1;
+    }
+    return stack->data[(stack->top)--];
+}
+
+// Peek at top of stack
+int stackPeek(Stack* stack) {
+    if (stackEmpty(stack)) {
+        printf("Error: Stack is empty\n");
+        return -1;
+    }
+    return stack->data[stack->top];
+}
+
+// Queue implementation using two stacks
+typedef struct {
+    Stack* stack1; // for push operations
+    Stack* stack2; // for pop/peek operations
+} MyQueue;
+
+// Initialize the queue
+MyQueue* myQueueCreate() {
+    MyQueue* queue = (MyQueue*)malloc(sizeof(MyQueue));
+    queue->stack1 = createStack(10);
+    queue->stack2 = createStack(10);
+    return queue;
+}
+
+// Push element to the back of queue
+void myQueuePush(MyQueue* obj, int x) {
+    // Simply push to stack1
+    stackPush(obj->stack1, x);
+}
+
+// Helper function to transfer elements from stack1 to stack2 if needed
+void transfer(MyQueue* obj) {
+    // If stack2 is empty, transfer all elements from stack1
+    if (stackEmpty(obj->stack2)) {
+        while (!stackEmpty(obj->stack1)) {
+            stackPush(obj->stack2, stackPop(obj->stack1));
+        }
+    }
+}
+
+// Pop element from the front of queue
+int myQueuePop(MyQueue* obj) {
+    transfer(obj);
+    // Now the top of stack2 is the front of the queue
+    return stackPop(obj->stack2);
+}
+
+// Get the front element
+int myQueuePeek(MyQueue* obj) {
+    transfer(obj);
+    // Now the top of stack2 is the front of the queue
+    return stackPeek(obj->stack2);
+}
+
+// Check if the queue is empty
+bool myQueueEmpty(MyQueue* obj) {
+    // Queue is empty only if both stacks are empty
+    return stackEmpty(obj->stack1) && stackEmpty(obj->stack2);
+}
+
+// Free memory
+void myQueueFree(MyQueue* obj) {
+    free(obj->stack1->data);
+    free(obj->stack1);
+    free(obj->stack2->data);
+    free(obj->stack2);
+    free(obj);
+}
+
+// Main function to demonstrate usage
+int main() {
+    MyQueue* myQueue = myQueueCreate();
+    myQueuePush(myQueue, 1); // queue is: [1]
+    myQueuePush(myQueue, 2); // queue is: [1, 2]
+
+	printf("Peek: %d\n", myQueuePeek(myQueue)); // returns 1
+	printf("Pop: %d\n", myQueuePop(myQueue)); // returns 1
+	printf("Is empty? %s\n", myQueueEmpty(myQueue) ? "true" : "false"); // returns false
+
+    myQueueFree(myQueue);
+    return 0;
+}
