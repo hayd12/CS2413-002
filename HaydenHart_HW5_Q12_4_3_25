@@ -1,0 +1,185 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Define the structure for a node in the binary search tree
+struct Node {
+    int data;
+    struct Node* left;
+    struct Node* right;
+};
+
+// Function to create a new node
+struct Node* createNode(int value) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->data = value;
+    newNode->left = NULL;
+    newNode->right = NULL;
+    return newNode;
+}
+
+// Function to insert a value into the BST
+struct Node* insert(struct Node* root, int value) {
+    // If tree is empty, create a new node as root
+    if (root == NULL) {
+        return createNode(value);
+    }
+    
+    // Otherwise, traverse the tree
+    if (value < root->data) {
+        root->left = insert(root->left, value);
+    } else if (value > root->data) {
+        root->right = insert(root->right, value);
+    }
+    
+    // Return the unchanged root pointer
+    return root;
+}
+
+// In-order traversal
+void inOrder(struct Node* root) {
+    if (root != NULL) {
+        inOrder(root->left);
+        printf("%d ", root->data);
+        inOrder(root->right);
+    }
+}
+
+// Pre-order traversal
+void preOrder(struct Node* root) {
+    if (root != NULL) {
+        printf("%d ", root->data);
+        preOrder(root->left);
+        preOrder(root->right);
+    }
+}
+
+// Post-order traversal
+void postOrder(struct Node* root) {
+    if (root != NULL) {
+        postOrder(root->left);
+        postOrder(root->right);
+        printf("%d ", root->data);
+    }
+}
+
+// Function to find the minimum value node in a tree
+struct Node* findMinValueNode(struct Node* node) {
+    struct Node* current = node;
+    
+    // Find the leftmost leaf
+    while (current && current->left != NULL) {
+        current = current->left;
+    }
+    
+    return current;
+}
+
+// Function to delete a node from BST
+struct Node* deleteNode(struct Node* root, int value) {
+    // Base case: empty tree
+    if (root == NULL) {
+        return root;
+    }
+    
+    // Navigate to the node to be deleted
+    if (value < root->data) {
+        root->left = deleteNode(root->left, value);
+    } else if (value > root->data) {
+        root->right = deleteNode(root->right, value);
+    } else {
+        // Node with the value to be deleted is found
+        
+        // Case 1: Leaf node (no children)
+        if (root->left == NULL && root->right == NULL) {
+            free(root);
+            return NULL;
+        }
+        // Case 2: Node with one child
+        else if (root->left == NULL) {
+            struct Node* temp = root->right;
+            free(root);
+            return temp;
+        } else if (root->right == NULL) {
+            struct Node* temp = root->left;
+            free(root);
+            return temp;
+        }
+        
+        // Case 3: Node with two children
+        // Get the inorder successor (smallest in right subtree)
+        struct Node* temp = findMinValueNode(root->right);
+        
+        // Copy the inorder successor's data to this node
+        root->data = temp->data;
+        
+        // Delete the inorder successor
+        root->right = deleteNode(root->right, temp->data);
+    }
+    return root;
+}
+
+// Function to create the given BST
+struct Node* createGivenBST() {
+    struct Node* root = NULL;
+    
+    // Insert all values from the given tree
+    root = insert(root, 45);
+    root = insert(root, 39);
+    root = insert(root, 56);
+    root = insert(root, 12);
+    root = insert(root, 54);
+    root = insert(root, 78);
+    root = insert(root, 10);
+    root = insert(root, 34);
+    root = insert(root, 67);
+    root = insert(root, 89);
+    root = insert(root, 32);
+    root = insert(root, 81);
+    
+    return root;
+}
+
+// Function to perform the required operations
+void performOperations() {
+    // Create the BST as given in the problem
+    struct Node* root = createGivenBST();
+    
+    // Perform the traversals
+    printf("In-Order Traversal: ");
+    inOrder(root);
+    printf("\n");
+    
+    printf("Pre-Order Traversal: ");
+    preOrder(root);
+    printf("\n");
+    
+    printf("Post-Order Traversal: ");
+    postOrder(root);
+    printf("\n\n");
+    
+    // Show deletion of root node (45)
+    printf("Deleting root node (45)...\n");
+    root = deleteNode(root, 45);
+    printf("In-Order Traversal after deletion: ");
+    inOrder(root);
+    printf("\n\n");
+    
+    // Insert new values
+    printf("Inserting new values: 11, 22, 33, 44, 55, 66, 77\n");
+    root = insert(root, 11);
+    root = insert(root, 22);
+    root = insert(root, 33);
+    root = insert(root, 44);
+    root = insert(root, 55);
+    root = insert(root, 66);
+    root = insert(root, 77);
+    
+    printf("In-Order Traversal after insertions: ");
+    inOrder(root);
+    printf("\n");
+}
+
+int main() {
+    performOperations();
+    return 0;
+}
