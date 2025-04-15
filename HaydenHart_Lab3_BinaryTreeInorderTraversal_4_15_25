@@ -1,0 +1,230 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+// Definition for a binary tree node
+struct TreeNode {
+    int val;
+    struct TreeNode* left;
+    struct TreeNode* right;
+};
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+
+ // Recursive solution
+void inorderHelper(struct TreeNode* root, int* result, int* returnSize) {
+    if (root == NULL) return;
+
+    // Visit left subtree
+    inorderHelper(root->left, result, returnSize);
+
+    // Visit root
+    result[(*returnSize)++] = root->val;
+
+    // Visit right subtree
+    inorderHelper(root->right, result, returnSize);
+}
+
+int* inorderTraversalRecursive(struct TreeNode* root, int* returnSize) {
+    *returnSize = 0;
+
+    // Allocate memory for result array (max 100 nodes as per constraints)
+    int* result = (int*)malloc(sizeof(int) * 100);
+    if (result == NULL) {
+        return NULL; // Handle allocation failure
+    }
+
+    if (root != NULL) {
+        inorderHelper(root, result, returnSize);
+    }
+
+    return result;
+}
+
+// Iterative solution using stack
+typedef struct Stack {
+    struct TreeNode** array;
+    int top;
+    int capacity;
+} Stack;
+
+Stack* createStack(int capacity) {
+    Stack* stack = (Stack*)malloc(sizeof(Stack));
+    if (stack == NULL) return NULL;
+
+    stack->capacity = capacity;
+    stack->top = -1;
+    stack->array = (struct TreeNode**)malloc(stack->capacity * sizeof(struct TreeNode*));
+    if (stack->array == NULL) {
+        free(stack);
+        return NULL;
+    }
+    return stack;
+}
+
+bool isEmpty(Stack* stack) {
+    return stack->top == -1;
+}
+
+void push(Stack* stack, struct TreeNode* node) {
+    stack->array[++stack->top] = node;
+}
+
+struct TreeNode* pop(Stack* stack) {
+    if (isEmpty(stack)) return NULL;
+    return stack->array[stack->top--];
+}
+
+void freeStack(Stack* stack) {
+    free(stack->array);
+    free(stack);
+}
+
+int* inorderTraversal(struct TreeNode* root, int* returnSize) {
+    *returnSize = 0;
+
+    // Allocate memory for result array (max 100 nodes as per constraints)
+    int* result = (int*)malloc(sizeof(int) * 100);
+    if (result == NULL) {
+        return NULL; // Handle allocation failure
+    }
+
+    // If root is NULL, return empty array
+    if (root == NULL) {
+        return result;
+    }
+
+    // Create a stack to simulate recursion
+    Stack* stack = createStack(100);
+    if (stack == NULL) {
+        free(result);
+        return NULL;
+    }
+
+    struct TreeNode* current = root;
+
+    // Traverse the tree
+    while (current != NULL || !isEmpty(stack)) {
+        // Reach the leftmost node of the current node
+        while (current != NULL) {
+            push(stack, current);
+            current = current->left;
+        }
+
+        // Current is now NULL, pop from stack
+        current = pop(stack);
+
+        // Add the node value to result
+        result[(*returnSize)++] = current->val;
+
+        // Visit the right subtree
+        current = current->right;
+    }
+
+    freeStack(stack);
+    return result;
+}
+
+// Helper function to create a new node
+struct TreeNode* newNode(int val) {
+    struct TreeNode* node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+    if (node == NULL) return NULL;
+
+    node->val = val;
+    node->left = NULL;
+    node->right = NULL;
+    return node;
+}
+
+// Helper function to free the tree
+void freeTree(struct TreeNode* root) {
+    if (root == NULL) return;
+    freeTree(root->left);
+    freeTree(root->right);
+    free(root);
+}
+
+// Print array helper function
+void printArray(int* arr, int size) {
+    printf("[");
+    for (int i = 0; i < size; i++) {
+        printf("%d", arr[i]);
+        if (i < size - 1) printf(", ");
+    }
+    printf("]\n");
+}
+
+// Function to build a tree from array representation for testing
+struct TreeNode* buildTree(int* arr, int size, int index) {
+    if (index >= size || arr[index] == -101) { // Using -101 to represent NULL (since constraint says values are >= -100)
+        return NULL;
+    }
+
+    struct TreeNode* root = newNode(arr[index]);
+    if (root == NULL) return NULL;
+
+    // Recursively build left and right subtrees
+    // For a node at index i, left child is at 2*i+1, right child at 2*i+2
+    root->left = buildTree(arr, size, 2 * index + 1);
+    root->right = buildTree(arr, size, 2 * index + 2);
+
+    return root;
+}
+
+// Main function for testing
+int main() {
+    // Example 1: [1,null,2,3]
+    int arr1[] = { 1, -101, 2, -101, -101, 3, -101 }; // Using -101 to represent NULL
+    int size1 = sizeof(arr1) / sizeof(arr1[0]);
+    struct TreeNode* root1 = buildTree(arr1, size1, 0);
+
+    int returnSize1 = 0;
+    int* result1 = inorderTraversal(root1, &returnSize1);
+
+    printf("Example 1 Output: ");
+    printArray(result1, returnSize1);
+    free(result1);
+
+    // Example 2: [1,2,3,4,5,null,8,null,null,6,7,9]
+    int arr2[] = { 1, 2, 3, 4, 5, -101, 8, -101, -101, 6, 7, -101, -101, 9, -101 };
+    int size2 = sizeof(arr2) / sizeof(arr2[0]);
+    struct TreeNode* root2 = buildTree(arr2, size2, 0);
+
+    int returnSize2 = 0;
+    int* result2 = inorderTraversal(root2, &returnSize2);
+
+    printf("Example 2 Output: ");
+    printArray(result2, returnSize2);
+    free(result2);
+
+    // Example 3: []
+    struct TreeNode* root3 = NULL;
+
+    int returnSize3 = 0;
+    int* result3 = inorderTraversal(root3, &returnSize3);
+
+    printf("Example 3 Output: ");
+    printArray(result3, returnSize3);
+    free(result3);
+
+    // Example 4: [1]
+    int arr4[] = { 1 };
+    int size4 = sizeof(arr4) / sizeof(arr4[0]);
+    struct TreeNode* root4 = buildTree(arr4, size4, 0);
+
+    int returnSize4 = 0;
+    int* result4 = inorderTraversal(root4, &returnSize4);
+
+    printf("Example 4 Output: ");
+    printArray(result4, returnSize4);
+    free(result4);
+
+    // Free all allocated memory
+    freeTree(root1);
+    freeTree(root2);
+    freeTree(root4);
+
+    return 0;
+}
