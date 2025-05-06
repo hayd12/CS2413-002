@@ -1,0 +1,91 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class Solution {
+public:
+    int numIslands(vector<vector<char>>& grid) {
+        // Handle edge case: empty grid
+        if (grid.empty() || grid[0].empty()) {
+            return 0;
+        }
+        
+        int rows = grid.size();
+        int cols = grid[0].size();
+        int islandCount = 0;
+        
+        // Iterate through each cell in the grid
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                // If we find land ('1'), it's the start of an island
+                if (grid[i][j] == '1') {
+                    islandCount++; // Count this island
+                    // Use DFS to mark all connected land cells as visited
+                    dfs(grid, i, j, rows, cols);
+                }
+            }
+        }
+        
+        return islandCount;
+    }
+    
+private:
+    // Depth-first search to mark all connected land cells as visited
+    void dfs(vector<vector<char>>& grid, int i, int j, int rows, int cols) {
+        // Check if current position is out of bounds or not land
+        if (i < 0 || i >= rows || j < 0 || j >= cols || grid[i][j] != '1') {
+            return;
+        }
+        
+        // Mark the current cell as visited by changing it to '0'
+        grid[i][j] = '0';
+        
+        // Recursively check all four adjacent cells (up, right, down, left)
+        dfs(grid, i - 1, j, rows, cols); // Up
+        dfs(grid, i, j + 1, rows, cols); // Right
+        dfs(grid, i + 1, j, rows, cols); // Down
+        dfs(grid, i, j - 1, rows, cols); // Left
+    }
+};
+
+// Helper function to print the grid
+void printGrid(const vector<vector<char>>& grid) {
+    for (const auto& row : grid) {
+        for (char cell : row) {
+            cout << cell << " ";
+        }
+        cout << endl;
+    }
+}
+
+// Main function to test the solution
+int main() {
+    // Example 1
+    vector<vector<char>> grid1 = {
+        {'1', '1', '1', '1', '0'},
+        {'1', '1', '0', '1', '0'},
+        {'1', '1', '0', '0', '0'},
+        {'0', '0', '0', '0', '0'}
+    };
+    
+    Solution sol;
+    cout << "Example 1:" << endl;
+    cout << "Input grid:" << endl;
+    printGrid(grid1);
+    cout << "Output: " << sol.numIslands(grid1) << endl << endl;
+    
+    // Example 2
+    vector<vector<char>> grid2 = {
+        {'1', '1', '0', '0', '0'},
+        {'1', '1', '0', '0', '0'},
+        {'0', '0', '1', '0', '0'},
+        {'0', '0', '0', '1', '1'}
+    };
+    
+    cout << "Example 2:" << endl;
+    cout << "Input grid:" << endl;
+    printGrid(grid2);
+    cout << "Output: " << sol.numIslands(grid2) << endl;
+    
+    return 0;
+}
