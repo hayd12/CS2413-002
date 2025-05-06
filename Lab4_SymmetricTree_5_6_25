@@ -1,0 +1,215 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+// Definition for a binary tree node as provided in the problem
+struct TreeNode {
+    int val;
+    struct TreeNode *left;
+    struct TreeNode *right;
+};
+
+// Helper function for recursive solution
+bool isMirror(struct TreeNode* left, struct TreeNode* right) {
+    // If both nodes are NULL, they are mirror images
+    if (left == NULL && right == NULL) {
+        return true;
+    }
+    
+    // If only one node is NULL, they are not mirror images
+    if (left == NULL || right == NULL) {
+        return false;
+    }
+    
+    // For the trees to be mirror images, the values at current nodes must be equal,
+    // and the left subtree of the left node must mirror the right subtree of the right node,
+    // and the right subtree of the left node must mirror the left subtree of the right node
+    return (left->val == right->val) && 
+           isMirror(left->left, right->right) && 
+           isMirror(left->right, right->left);
+}
+
+// Recursive solution
+bool isSymmetric_recursive(struct TreeNode* root) {
+    // An empty tree is symmetric
+    if (root == NULL) {
+        return true;
+    }
+    
+    // Check if the left and right subtrees are mirrors of each other
+    return isMirror(root->left, root->right);
+}
+
+// Iterative solution using a simple queue implementation
+typedef struct QueueNode {
+    struct TreeNode* treeNode;
+    struct QueueNode* next;
+} QueueNode;
+
+typedef struct {
+    QueueNode* front;
+    QueueNode* rear;
+} Queue;
+
+// Initialize an empty queue
+void initQueue(Queue* q) {
+    q->front = NULL;
+    q->rear = NULL;
+}
+
+// Check if queue is empty
+bool isQueueEmpty(Queue* q) {
+    return q->front == NULL;
+}
+
+// Add a tree node to the queue
+void enqueue(Queue* q, struct TreeNode* node) {
+    QueueNode* newNode = (QueueNode*)malloc(sizeof(QueueNode));
+    if (newNode == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+    
+    newNode->treeNode = node;
+    newNode->next = NULL;
+    
+    if (isQueueEmpty(q)) {
+        q->front = q->rear = newNode;
+    } else {
+        q->rear->next = newNode;
+        q->rear = newNode;
+    }
+}
+
+// Remove and return a tree node from the queue
+struct TreeNode* dequeue(Queue* q) {
+    if (isQueueEmpty(q)) {
+        return NULL;
+    }
+    
+    QueueNode* temp = q->front;
+    struct TreeNode* node = temp->treeNode;
+    
+    q->front = q->front->next;
+    if (q->front == NULL) {
+        q->rear = NULL;
+    }
+    
+    free(temp);
+    return node;
+}
+
+// Free the entire queue
+void freeQueue(Queue* q) {
+    while (!isQueueEmpty(q)) {
+        dequeue(q);
+    }
+}
+
+// Iterative solution
+bool isSymmetric_iterative(struct TreeNode* root) {
+    // An empty tree is symmetric
+    if (root == NULL) {
+        return true;
+    }
+    
+    Queue q;
+    initQueue(&q);
+    
+    // Add the left and right children of the root to the queue
+    enqueue(&q, root->left);
+    enqueue(&q, root->right);
+    
+    // Process pairs of nodes
+    while (!isQueueEmpty(&q)) {
+        struct TreeNode* leftNode = dequeue(&q);
+        struct TreeNode* rightNode = dequeue(&q);
+        
+        // If both are NULL, continue checking other pairs
+        if (leftNode == NULL && rightNode == NULL) {
+            continue;
+        }
+        
+        // If one is NULL or values don't match, tree is not symmetric
+        if (leftNode == NULL || rightNode == NULL || leftNode->val != rightNode->val) {
+            freeQueue(&q);
+            return false;
+        }
+        
+        // Add the outer pair
+        enqueue(&q, leftNode->left);
+        enqueue(&q, rightNode->right);
+        
+        // Add the inner pair
+        enqueue(&q, leftNode->right);
+        enqueue(&q, rightNode->left);
+    }
+    
+    // If we've processed all nodes without finding asymmetry, the tree is symmetric
+    return true;
+}
+
+// Helper function to create a new tree node
+struct TreeNode* newNode(int val) {
+    struct TreeNode* node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+    if (node == NULL) {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+    node->val = val;
+    node->left = NULL;
+    node->right = NULL;
+    return node;
+}
+
+// Helper function to free the tree
+void freeTree(struct TreeNode* root) {
+    if (root == NULL) {
+        return;
+    }
+    freeTree(root->left);
+    freeTree(root->right);
+    free(root);
+}
+
+// Helper function to build a tree from an array representation
+// This is a simplified version that works for the examples provided
+struct TreeNode* buildTree(int* vals, int size, int index) {
+    if (index >= size || vals[index] == -1) {  // -1 represents NULL
+        return NULL;
+    }
+    
+    struct TreeNode* root = newNode(vals[index]);
+    root->left = buildTree(vals, size, 2 * index + 1);
+    root->right = buildTree(vals, size, 2 * index + 2);
+    
+    return root;
+}
+
+// Main function to test the solution
+int main() {
+    // Example 1: [1,2,2,3,4,4,3]
+    int arr1[] = {1, 2, 2, 3, 4, 4, 3};
+    int size1 = sizeof(arr1) / sizeof(arr1[0]);
+    struct TreeNode* root1 = buildTree(arr1, size1, 0);
+    
+    printf("Example 1:\n");
+    printf("Recursive solution: %s\n", isSymmetric_recursive(root1) ? "true" : "false");
+    printf("Iterative solution: %s\n", isSymmetric_iterative(root1) ? "true" : "false");
+    
+    // Example 2: [1,2,2,null,3,null,3]
+    // Representing null as -1 for simplicity
+    int arr2[] = {1, 2, 2, -1, 3, -1, 3};
+    int size2 = sizeof(arr2) / sizeof(arr2[0]);
+    struct TreeNode* root2 = buildTree(arr2, size2, 0);
+    
+    printf("\nExample 2:\n");
+    printf("Recursive solution: %s\n", isSymmetric_recursive(root2) ? "true" : "false");
+    printf("Iterative solution: %s\n", isSymmetric_iterative(root2) ? "true" : "false");
+    
+    // Free allocated memory
+    freeTree(root1);
+    freeTree(root2);
+    
+    return 0;
+}
